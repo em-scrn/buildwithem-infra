@@ -67,9 +67,10 @@ provider "aws" {
 }
 
 resource "aws_acm_certificate" "cert" {
-  provider          = aws.us-east-1
-  domain_name       = var.domain_name
-  validation_method = "DNS"
+  provider                  = aws.us-east-1
+  domain_name               = var.domain_name
+  subject_alternative_names = ["www.${var.domain_name}"]
+  validation_method         = "DNS"
 
   lifecycle {
     create_before_destroy = true
@@ -157,7 +158,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   is_ipv6_enabled     = true
   default_root_object = "index.html"
 
-  aliases = [var.domain_name]
+  aliases = [var.domain_name, var.www_domain_name]
 
   origin {
     domain_name = aws_s3_bucket.site.bucket_regional_domain_name
@@ -209,6 +210,18 @@ resource "aws_route53_record" "root_alias" {
   zone_id = data.aws_route53_zone.domain.zone_id
   name    = var.domain_name
   type    = "A"
+
+  alias {
+    name                   = aws_cloudfront_distribution.cdn.domain_name
+    zone_id                = aws_cloudfront_distribution.cdn.hosted_zone_id
+    evaluate_target_health = false
+  }
+}
+
+resource "aws_route53_record" "www_alias" {
+  name    = var.www_domain_name
+  type    = "A"
+  zone_id = data.aws_route53_zone.domain.zone_id
 
   alias {
     name                   = aws_cloudfront_distribution.cdn.domain_name

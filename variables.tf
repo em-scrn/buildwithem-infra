@@ -8,6 +8,12 @@ variable "domain_name" {
   type        = string
 }
 
+variable "www_domain_name" {
+  description = "The www subdomain (e.g., www.buildwithem.com)"
+  type        = string
+}
+
+
 variable "waf_name" {
   description = "The name for the AWS WAF Web ACL"
   type        = string
