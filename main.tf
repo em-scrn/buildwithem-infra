@@ -175,9 +175,9 @@ resource "aws_cloudfront_distribution" "cdn" {
     viewer_protocol_policy = "redirect-to-https"
 
     function_association {
-    event_type   = "viewer-request"
-    function_arn = aws_cloudfront_function.index_rewrite.arn
-  }
+      event_type   = "viewer-request"
+      function_arn = aws_cloudfront_function.index_rewrite.arn
+    }
 
     forwarded_values {
       query_string = false
