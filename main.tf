@@ -174,6 +174,11 @@ resource "aws_cloudfront_distribution" "cdn" {
 
     viewer_protocol_policy = "redirect-to-https"
 
+    function_association {
+    event_type   = "viewer-request"
+    function_arn = aws_cloudfront_function.index_rewrite.arn
+  }
+
     forwarded_values {
       query_string = false
       cookies {
@@ -203,6 +208,18 @@ resource "aws_cloudfront_distribution" "cdn" {
   tags = {
     Name = var.cdn_tag
   }
+
+  custom_error_response {
+    error_code         = 404
+    response_code      = 404
+    response_page_path = "/404.html"
+  }
+
+  custom_error_response {
+    error_code         = 403
+    response_code      = 403
+    response_page_path = "/404.html"
+  }
 }
 
 # Route 53 record to point domain to CloudFront
@@ -228,4 +245,12 @@ resource "aws_route53_record" "www_alias" {
     zone_id                = aws_cloudfront_distribution.cdn.hosted_zone_id
     evaluate_target_health = false
   }
+}
+
+resource "aws_cloudfront_function" "index_rewrite" {
+  name    = "index-rewrite"
+  runtime = "cloudfront-js-1.0"
+  comment = "Rewrite requests to append index.html"
+  publish = true
+  code    = file("${path.module}/index-rewrite.js")
 }
